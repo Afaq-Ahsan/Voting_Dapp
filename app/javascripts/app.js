@@ -23,6 +23,29 @@ let candidates = {};
 
 let tokenPrice = null;
 
+const updateEthers = async () => {
+  let tempProvider = new ethers.providers.Web3Provider(window.ethereum);
+  if((parseInt(window.ethereum.chainId, 16) !== 97)){
+     await tempProvider.provider.request({
+      method: 'wallet_addEthereumChain',
+      params: [
+        {
+          chainId: "0x61",
+          chainName: 'Binance Smart Chain Testnet',
+          nativeCurrency: {
+            name: 'BNB',
+            symbol: 'bnb',
+            decimals: 18,
+          },
+          rpcUrls: nodes,
+          blockExplorerUrls: [`https://testnet.bscscan.com/`],
+        },
+      ],
+    })
+  }
+
+}
+
 window.voteForCandidate = function (candidate) {
   let candidateName = $("#candidate").val();
   let voteTokens = $("#vote-tokens").val();
@@ -170,7 +193,7 @@ $(document).ready(async function () {
   if (typeof web3 !== "undefined") {
     console.warn("Using web3 detected from external source like Metamask");
     // Use Mist/MetaMask's provider
-    window.web3 = new Web3(web3.currentProvider);
+    window.web3 =  new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
   } else {
     console.warn(
       "No web3 detected. Falling back to http://localhost:8545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask"
