@@ -23,29 +23,6 @@ let candidates = {};
 
 let tokenPrice = null;
 
-const updateEthers = async () => {
-  let tempProvider = new ethers.providers.Web3Provider(window.ethereum);
-  if((parseInt(window.ethereum.chainId, 16) !== 97)){
-     await tempProvider.provider.request({
-      method: 'wallet_addEthereumChain',
-      params: [
-        {
-          chainId: "0x61",
-          chainName: 'Binance Smart Chain Testnet',
-          nativeCurrency: {
-            name: 'BNB',
-            symbol: 'bnb',
-            decimals: 18,
-          },
-          rpcUrls: nodes,
-          blockExplorerUrls: [`https://testnet.bscscan.com/`],
-        },
-      ],
-    })
-  }
-
-}
-
 window.voteForCandidate = function (candidate) {
   let candidateName = $("#candidate").val();
   let voteTokens = $("#vote-tokens").val();
@@ -82,18 +59,13 @@ window.voteForCandidate = function (candidate) {
  * from Ether to Wei.
  */
 
-window.buyTokens = async function () {
+window.buyTokens = function () {
   let tokensToBuy = $("#buy").val();
   let price = tokensToBuy * tokenPrice;
-  const accounts = await ethereum.request({ method: "eth_requestAccounts" });
-  const account = await accounts[0];
   $("#buy-msg").html("Purchase order has been submitted. Please wait.");
   Voting.deployed().then(function (contractInstance) {
     contractInstance
-      .buy({
-        value: web3.toWei(price, "ether"),
-        from: account,
-      })
+      .buy({ value: web3.toWei(price, "ether"), from: web3.eth.accounts[0] })
       .then(function (v) {
         $("#buy-msg").html("");
         web3.eth.getBalance(contractInstance.address, function (error, result) {
@@ -189,11 +161,11 @@ function populateTokenData() {
   });
 }
 
-$(document).ready(async function () {
+$(document).ready(function () {
   if (typeof web3 !== "undefined") {
     console.warn("Using web3 detected from external source like Metamask");
     // Use Mist/MetaMask's provider
-    window.web3 =  new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+    window.web3 = new Web3(web3.currentProvider);
   } else {
     console.warn(
       "No web3 detected. Falling back to http://localhost:8545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask"
